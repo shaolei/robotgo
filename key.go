@@ -11,12 +11,6 @@
 
 package robotgo
 
-/*
-// #include "key/keycode.h"
-#include "key/keypress_c.h"
-*/
-import "C"
-
 import (
 	"errors"
 	"math/rand"
@@ -25,9 +19,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-	"unsafe"
 
-	"github.com/go-vgo/robotgo/clipboard"
+	"github.com/shaolei/robotgo/clipboard"
 )
 
 // Defining a bunch of constants.
@@ -142,42 +135,40 @@ const (
 	F23 = "f23"
 	F24 = "f24"
 
-	Cmd  = "cmd"  // is the "win" key for windows
-	Lcmd = "lcmd" // left command
-	Rcmd = "rcmd" // right command
-	// "command"
-	Alt     = "alt"
-	Lalt    = "lalt" // left alt
-	Ralt    = "ralt" // right alt
-	Ctrl    = "ctrl"
-	Lctrl   = "lctrl" // left ctrl
-	Rctrl   = "rctrl" // right ctrl
-	Control = "control"
-	Shift   = "shift"
-	Lshift  = "lshift" // left shift
-	Rshift  = "rshift" // right shift
-	// "right_shift"
+	Cmd         = "cmd"  // is the "win" key for windows
+	Lcmd        = "lcmd" // left command
+	Rcmd        = "rcmd" // right command
+	Alt         = "alt"
+	Lalt        = "lalt"
+	Ralt        = "ralt"
+	Ctrl        = "ctrl"
+	Lctrl       = "lctrl"
+	Rctrl       = "rctrl"
+	Control     = "control"
+	Shift       = "shift"
+	Lshift      = "lshift"
+	Rshift      = "rshift"
 	Capslock    = "capslock"
 	Space       = "space"
 	Print       = "print"
-	Printscreen = "printscreen" // No Mac support
+	Printscreen = "printscreen"
 	Insert      = "insert"
-	Menu        = "menu" // Windows only
+	Menu        = "menu"
 
-	AudioMute    = "audio_mute"     // Mute the volume
-	AudioVolDown = "audio_vol_down" // Lower the volume
-	AudioVolUp   = "audio_vol_up"   // Increase the volume
+	AudioMute    = "audio_mute"
+	AudioVolDown = "audio_vol_down"
+	AudioVolUp   = "audio_vol_up"
 	AudioPlay    = "audio_play"
 	AudioStop    = "audio_stop"
 	AudioPause   = "audio_pause"
-	AudioPrev    = "audio_prev"    // Previous Track
-	AudioNext    = "audio_next"    // Next Track
-	AudioRewind  = "audio_rewind"  // Linux only
-	AudioForward = "audio_forward" // Linux only
-	AudioRepeat  = "audio_repeat"  //  Linux only
-	AudioRandom  = "audio_random"  //  Linux only
+	AudioPrev    = "audio_prev"
+	AudioNext    = "audio_next"
+	AudioRewind  = "audio_rewind"
+	AudioForward = "audio_forward"
+	AudioRepeat  = "audio_repeat"
+	AudioRandom  = "audio_random"
 
-	Num0    = "num0" // numpad 0
+	Num0    = "num0"
 	Num1    = "num1"
 	Num2    = "num2"
 	Num3    = "num3"
@@ -198,131 +189,129 @@ const (
 	NumEnter   = "num_enter"
 	NumEqual   = "num_equal"
 
-	LightsMonUp     = "lights_mon_up"     // Turn up monitor brightness			No Windows support
-	LightsMonDown   = "lights_mon_down"   // Turn down monitor brightness		No Windows support
-	LightsKbdToggle = "lights_kbd_toggle" // Toggle keyboard backlight on/off		No Windows support
-	LightsKbdUp     = "lights_kbd_up"     // Turn up keyboard backlight brightness	No Windows support
+	LightsMonUp     = "lights_mon_up"
+	LightsMonDown   = "lights_mon_down"
+	LightsKbdToggle = "lights_kbd_toggle"
+	LightsKbdUp     = "lights_kbd_up"
 	LightsKbdDown   = "lights_kbd_down"
 )
 
-// keyNames define a map of key names to MMKeyCode
-var keyNames = map[string]C.MMKeyCode{
-	"backspace": C.K_BACKSPACE,
-	"delete":    C.K_DELETE,
-	"enter":     C.K_RETURN,
-	"tab":       C.K_TAB,
-	"esc":       C.K_ESCAPE,
-	"escape":    C.K_ESCAPE,
-	"up":        C.K_UP,
-	"down":      C.K_DOWN,
-	"right":     C.K_RIGHT,
-	"left":      C.K_LEFT,
-	"home":      C.K_HOME,
-	"end":       C.K_END,
-	"pageup":    C.K_PAGEUP,
-	"pagedown":  C.K_PAGEDOWN,
+// keyNames define a map of key names to key code
+var keyNames = map[string]uint32{
+	"backspace": K_BACKSPACE,
+	"delete":    K_DELETE,
+	"enter":     K_RETURN,
+	"tab":       K_TAB,
+	"esc":       K_ESCAPE,
+	"escape":    K_ESCAPE,
+	"up":        K_UP,
+	"down":      K_DOWN,
+	"right":     K_RIGHT,
+	"left":      K_LEFT,
+	"home":      K_HOME,
+	"end":       K_END,
+	"pageup":    K_PAGEUP,
+	"pagedown":  K_PAGEDOWN,
 	//
-	"f1":  C.K_F1,
-	"f2":  C.K_F2,
-	"f3":  C.K_F3,
-	"f4":  C.K_F4,
-	"f5":  C.K_F5,
-	"f6":  C.K_F6,
-	"f7":  C.K_F7,
-	"f8":  C.K_F8,
-	"f9":  C.K_F9,
-	"f10": C.K_F10,
-	"f11": C.K_F11,
-	"f12": C.K_F12,
-	"f13": C.K_F13,
-	"f14": C.K_F14,
-	"f15": C.K_F15,
-	"f16": C.K_F16,
-	"f17": C.K_F17,
-	"f18": C.K_F18,
-	"f19": C.K_F19,
-	"f20": C.K_F20,
-	"f21": C.K_F21,
-	"f22": C.K_F22,
-	"f23": C.K_F23,
-	"f24": C.K_F24,
+	"f1":  K_F1,
+	"f2":  K_F2,
+	"f3":  K_F3,
+	"f4":  K_F4,
+	"f5":  K_F5,
+	"f6":  K_F6,
+	"f7":  K_F7,
+	"f8":  K_F8,
+	"f9":  K_F9,
+	"f10": K_F10,
+	"f11": K_F11,
+	"f12": K_F12,
+	"f13": K_F13,
+	"f14": K_F14,
+	"f15": K_F15,
+	"f16": K_F16,
+	"f17": K_F17,
+	"f18": K_F18,
+	"f19": K_F19,
+	"f20": K_F20,
+	"f21": K_F21,
+	"f22": K_F22,
+	"f23": K_F23,
+	"f24": K_F24,
 	//
-	"cmd":         C.K_META,
-	"lcmd":        C.K_LMETA,
-	"rcmd":        C.K_RMETA,
-	"command":     C.K_META,
-	"alt":         C.K_ALT,
-	"lalt":        C.K_LALT,
-	"ralt":        C.K_RALT,
-	"ctrl":        C.K_CONTROL,
-	"lctrl":       C.K_LCONTROL,
-	"rctrl":       C.K_RCONTROL,
-	"control":     C.K_CONTROL,
-	"shift":       C.K_SHIFT,
-	"lshift":      C.K_LSHIFT,
-	"rshift":      C.K_RSHIFT,
-	"right_shift": C.K_RSHIFT,
-	"capslock":    C.K_CAPSLOCK,
-	"space":       C.K_SPACE,
-	"print":       C.K_PRINTSCREEN,
-	"printscreen": C.K_PRINTSCREEN,
-	"insert":      C.K_INSERT,
-	"menu":        C.K_MENU,
+	"cmd":         K_META,
+	"lcmd":        K_LMETA,
+	"rcmd":        K_RMETA,
+	"command":     K_META,
+	"alt":         K_ALT,
+	"lalt":        K_LALT,
+	"ralt":        K_RALT,
+	"ctrl":        K_CONTROL,
+	"lctrl":       K_LCONTROL,
+	"rctrl":       K_RCONTROL,
+	"control":     K_CONTROL,
+	"shift":       K_SHIFT,
+	"lshift":      K_LSHIFT,
+	"rshift":      K_RSHIFT,
+	"right_shift": K_RSHIFT,
+	"capslock":    K_CAPSLOCK,
+	"space":       K_SPACE,
+	"print":       K_PRINTSCREEN,
+	"printscreen": K_PRINTSCREEN,
+	"insert":      K_INSERT,
+	"menu":        K_MENU,
 
-	"audio_mute":     C.K_AUDIO_VOLUME_MUTE,
-	"audio_vol_down": C.K_AUDIO_VOLUME_DOWN,
-	"audio_vol_up":   C.K_AUDIO_VOLUME_UP,
-	"audio_play":     C.K_AUDIO_PLAY,
-	"audio_stop":     C.K_AUDIO_STOP,
-	"audio_pause":    C.K_AUDIO_PAUSE,
-	"audio_prev":     C.K_AUDIO_PREV,
-	"audio_next":     C.K_AUDIO_NEXT,
-	"audio_rewind":   C.K_AUDIO_REWIND,
-	"audio_forward":  C.K_AUDIO_FORWARD,
-	"audio_repeat":   C.K_AUDIO_REPEAT,
-	"audio_random":   C.K_AUDIO_RANDOM,
+	"audio_mute":     K_AUDIO_VOLUME_MUTE,
+	"audio_vol_down": K_AUDIO_VOLUME_DOWN,
+	"audio_vol_up":   K_AUDIO_VOLUME_UP,
+	"audio_play":     K_AUDIO_PLAY,
+	"audio_stop":     K_AUDIO_STOP,
+	"audio_pause":    K_AUDIO_PAUSE,
+	"audio_prev":     K_AUDIO_PREV,
+	"audio_next":     K_AUDIO_NEXT,
+	"audio_rewind":   K_AUDIO_REWIND,
+	"audio_forward":  K_AUDIO_FORWARD,
+	"audio_repeat":   K_AUDIO_REPEAT,
+	"audio_random":   K_AUDIO_RANDOM,
 
-	"num0":     C.K_NUMPAD_0,
-	"num1":     C.K_NUMPAD_1,
-	"num2":     C.K_NUMPAD_2,
-	"num3":     C.K_NUMPAD_3,
-	"num4":     C.K_NUMPAD_4,
-	"num5":     C.K_NUMPAD_5,
-	"num6":     C.K_NUMPAD_6,
-	"num7":     C.K_NUMPAD_7,
-	"num8":     C.K_NUMPAD_8,
-	"num9":     C.K_NUMPAD_9,
-	"num_lock": C.K_NUMPAD_LOCK,
+	"num0":     K_NUMPAD_0,
+	"num1":     K_NUMPAD_1,
+	"num2":     K_NUMPAD_2,
+	"num3":     K_NUMPAD_3,
+	"num4":     K_NUMPAD_4,
+	"num5":     K_NUMPAD_5,
+	"num6":     K_NUMPAD_6,
+	"num7":     K_NUMPAD_7,
+	"num8":     K_NUMPAD_8,
+	"num9":     K_NUMPAD_9,
+	"num_lock": K_NUMPAD_LOCK,
 
 	// todo: removed
-	"numpad_0":    C.K_NUMPAD_0,
-	"numpad_1":    C.K_NUMPAD_1,
-	"numpad_2":    C.K_NUMPAD_2,
-	"numpad_3":    C.K_NUMPAD_3,
-	"numpad_4":    C.K_NUMPAD_4,
-	"numpad_5":    C.K_NUMPAD_5,
-	"numpad_6":    C.K_NUMPAD_6,
-	"numpad_7":    C.K_NUMPAD_7,
-	"numpad_8":    C.K_NUMPAD_8,
-	"numpad_9":    C.K_NUMPAD_9,
-	"numpad_lock": C.K_NUMPAD_LOCK,
+	"numpad_0":    K_NUMPAD_0,
+	"numpad_1":    K_NUMPAD_1,
+	"numpad_2":    K_NUMPAD_2,
+	"numpad_3":    K_NUMPAD_3,
+	"numpad_4":    K_NUMPAD_4,
+	"numpad_5":    K_NUMPAD_5,
+	"numpad_6":    K_NUMPAD_6,
+	"numpad_7":    K_NUMPAD_7,
+	"numpad_8":    K_NUMPAD_8,
+	"numpad_9":    K_NUMPAD_9,
+	"numpad_lock": K_NUMPAD_LOCK,
 
-	"num.":      C.K_NUMPAD_DECIMAL,
-	"num+":      C.K_NUMPAD_PLUS,
-	"num-":      C.K_NUMPAD_MINUS,
-	"num*":      C.K_NUMPAD_MUL,
-	"num/":      C.K_NUMPAD_DIV,
-	"num_clear": C.K_NUMPAD_CLEAR,
-	"num_enter": C.K_NUMPAD_ENTER,
-	"num_equal": C.K_NUMPAD_EQUAL,
+	"num.":      K_NUMPAD_DECIMAL,
+	"num+":      K_NUMPAD_PLUS,
+	"num-":      K_NUMPAD_MINUS,
+	"num*":      K_NUMPAD_MUL,
+	"num/":      K_NUMPAD_DIV,
+	"num_clear": K_NUMPAD_CLEAR,
+	"num_enter": K_NUMPAD_ENTER,
+	"num_equal": K_NUMPAD_EQUAL,
 
-	"lights_mon_up":     C.K_LIGHTS_MON_UP,
-	"lights_mon_down":   C.K_LIGHTS_MON_DOWN,
-	"lights_kbd_toggle": C.K_LIGHTS_KBD_TOGGLE,
-	"lights_kbd_up":     C.K_LIGHTS_KBD_UP,
-	"lights_kbd_down":   C.K_LIGHTS_KBD_DOWN,
-
-	// { NULL:              C.K_NOT_A_KEY }
+	"lights_mon_up":     K_LIGHTS_MON_UP,
+	"lights_mon_down":   K_LIGHTS_MON_DOWN,
+	"lights_kbd_toggle": K_LIGHTS_KBD_TOGGLE,
+	"lights_kbd_up":     K_LIGHTS_KBD_UP,
+	"lights_kbd_down":   K_LIGHTS_KBD_DOWN,
 }
 
 // CmdCtrl If the operating system is macOS, return the key string "cmd",
@@ -334,26 +323,23 @@ func CmdCtrl() string {
 	return "ctrl"
 }
 
-// It sends a key press and release to the active application
-func tapKeyCode(code C.MMKeyCode, flags C.MMKeyFlags, pid C.uintptr) {
-	C.toggleKeyCode(code, true, flags, pid)
+// tapKeyCode sends a key press and release to the active application
+func tapKeyCode(code uint32, flags uint64, pid uintptr) {
+	platformToggleKeyCode(code, true, flags, pid)
 	MilliSleep(3)
-	C.toggleKeyCode(code, false, flags, pid)
+	platformToggleKeyCode(code, false, flags, pid)
 }
 
 var keyErr = errors.New("Invalid key flag specified.")
 
-func checkKeyCodes(k string) (key C.MMKeyCode, err error) {
+func checkKeyCodes(k string) (key uint32, err error) {
 	if k == "" {
 		return
 	}
 
 	if len(k) == 1 {
-		val1 := C.CString(k)
-		defer C.free(unsafe.Pointer(val1))
-
-		key = C.keyCodeForChar(*val1)
-		if key == C.K_NOT_A_KEY {
+		key = platformKeyCodeForChar(k[0])
+		if key == K_NOT_A_KEY {
 			err = keyErr
 			return
 		}
@@ -362,7 +348,7 @@ func checkKeyCodes(k string) (key C.MMKeyCode, err error) {
 
 	if v, ok := keyNames[k]; ok {
 		key = v
-		if key == C.K_NOT_A_KEY {
+		if key == K_NOT_A_KEY {
 			err = keyErr
 			return
 		}
@@ -370,48 +356,46 @@ func checkKeyCodes(k string) (key C.MMKeyCode, err error) {
 	return
 }
 
-func checkKeyFlags(f string) (flags C.MMKeyFlags) {
-	m := map[string]C.MMKeyFlags{
-		"alt":    C.MOD_ALT,
-		"ralt":   C.MOD_ALT,
-		"lalt":   C.MOD_ALT,
-		"cmd":    C.MOD_META,
-		"rcmd":   C.MOD_META,
-		"lcmd":   C.MOD_META,
-		"ctrl":   C.MOD_CONTROL,
-		"rctrl":  C.MOD_CONTROL,
-		"lctrl":  C.MOD_CONTROL,
-		"shift":  C.MOD_SHIFT,
-		"rshift": C.MOD_SHIFT,
-		"lshift": C.MOD_SHIFT,
-		"none":   C.MOD_NONE,
+func checkKeyFlags(f string) uint64 {
+	m := map[string]uint64{
+		"alt":    MOD_ALT,
+		"ralt":   MOD_ALT,
+		"lalt":   MOD_ALT,
+		"cmd":    MOD_META,
+		"rcmd":   MOD_META,
+		"lcmd":   MOD_META,
+		"ctrl":   MOD_CONTROL,
+		"rctrl":  MOD_CONTROL,
+		"lctrl":  MOD_CONTROL,
+		"shift":  MOD_SHIFT,
+		"rshift": MOD_SHIFT,
+		"lshift": MOD_SHIFT,
+		"none":   MOD_NONE,
 	}
 
 	if v, ok := m[f]; ok {
 		return v
 	}
-	return
+	return 0
 }
 
-func getFlagsFromValue(value []string) (flags C.MMKeyFlags) {
+func getFlagsFromValue(value []string) uint64 {
+	var flags uint64
 	if len(value) <= 0 {
-		return
+		return flags
 	}
 
 	for i := 0; i < len(value); i++ {
-		var f C.MMKeyFlags = C.MOD_NONE
-
-		f = checkKeyFlags(value[i])
-		flags = (C.MMKeyFlags)(flags | f)
+		f := checkKeyFlags(value[i])
+		flags = flags | f
 	}
-
-	return
+	return flags
 }
 
 func upKeyArr(keyArr []string, pid int) {
 	for i := 0; i < len(keyArr); i++ {
 		key1, _ := checkKeyCodes(keyArr[i])
-		C.toggleKeyCode(key1, false, C.MOD_NONE, C.uintptr(pid))
+		platformToggleKeyCode(key1, false, MOD_NONE, uintptr(pid))
 	}
 }
 
@@ -422,7 +406,7 @@ func keyTaps(k string, keyArr []string, pid int) error {
 		return err
 	}
 
-	tapKeyCode(key, flags, C.uintptr(pid))
+	tapKeyCode(key, flags, uintptr(pid))
 	MilliSleep(KeySleep)
 	upKeyArr(keyArr, pid)
 	return nil
@@ -451,7 +435,7 @@ func keyTogglesB(k string, down bool, keyArr []string, pid int) error {
 		return err
 	}
 
-	C.toggleKeyCode(key, C.bool(down), flags, C.uintptr(pid))
+	platformToggleKeyCode(key, down, flags, uintptr(pid))
 	MilliSleep(KeySleep)
 	if !down {
 		upKeyArr(keyArr, pid)
@@ -470,7 +454,7 @@ func keyToggles(k string, keyArr []string, pid int) error {
 |  '  /  |  |__   \   \/   /  |  |_)  | |  |  |  |    /  ^  \    |  |_)  |    |  .--.  |
 |    <   |   __|   \_    _/   |   _  <  |  |  |  |   /  /_\  \   |      /     |  |  |  |
 |  .  \  |  |____    |  |     |  |_)  | |  `--'  |  /  _____  \  |  |\  \----.|  '--'  |
-|__|\__\ |_______|   |__|     |______/   \______/  /__/     \__\ | _| `._____||_______/
+|__|\__\ |_______|   |__|     |______/   \______/  /__/     \__\ | _| `._____||_______|
 
 */
 
@@ -492,13 +476,12 @@ func ToStrings(fields []interface{}) []string {
 	return res
 }
 
-// toErr it converts a C string to a Go error
-func toErr(str *C.char) error {
-	gstr := C.GoString(str)
-	if gstr == "" {
+// toErr converts a string to a Go error
+func toErr(str string) error {
+	if str == "" {
 		return nil
 	}
-	return errors.New(gstr)
+	return errors.New(str)
 }
 
 func appendShift(key string, len1 int, args ...interface{}) (string, []interface{}) {
@@ -625,34 +608,28 @@ func CharCodeAt(s string, n int) rune {
 		}
 		i++
 	}
-
 	return 0
 }
 
 // UnicodeType tap the uint32 unicode
 func UnicodeType(str uint32, args ...int) {
-	cstr := C.uint(str)
 	pid := 0
 	if len(args) > 0 {
 		pid = args[0]
 	}
-
 	isPid := 0
 	if len(args) > 1 {
 		isPid = args[1]
 	}
-
-	C.unicodeType(cstr, C.uintptr(pid), C.int8_t(isPid))
+	platformUnicodeType(str, uintptr(pid), int8(isPid))
 }
 
 // ToUC trans string to unicode []string
 func ToUC(text string) []string {
 	var uc []string
-
 	for _, r := range text {
 		textQ := strconv.QuoteToASCII(string(r))
 		textUnQ := textQ[1 : len(textQ)-1]
-
 		st := strings.Replace(textUnQ, "\\u", "U", -1)
 		if st == "\\\\" {
 			st = "\\"
@@ -662,15 +639,11 @@ func ToUC(text string) []string {
 		}
 		uc = append(uc, st)
 	}
-
 	return uc
 }
 
 func inputUTF(str string) {
-	cstr := C.CString(str)
-	C.input_utf(cstr)
-
-	C.free(unsafe.Pointer(cstr))
+	platformInputUTF(str)
 }
 
 // TypeStr tap a string
@@ -713,7 +686,6 @@ func Type(str string, args ...int) {
 				inputUTF(strUc[i])
 				MilliSleep(tm1)
 			}
-
 			MilliSleep(tm)
 		}
 		return
@@ -722,9 +694,7 @@ func Type(str string, args ...int) {
 	for i := 0; i < len([]rune(str)); i++ {
 		ustr := uint32(CharCodeAt(str, i))
 		UnicodeType(ustr, pid)
-		// if len(args) > 0 {
 		MilliSleep(tm)
-		// }
 	}
 	MilliSleep(KeySleep)
 }
@@ -751,7 +721,6 @@ func CmdV() error {
 	if runtime.GOOS == "darwin" {
 		return KeyTap("v", "command")
 	}
-
 	return KeyTap("v", "control")
 }
 
@@ -776,7 +745,6 @@ func SetDelay(d ...int) {
 	if len(d) > 0 {
 		v = d[0]
 	}
-
 	KeySleep = v
 	MouseSleep = v
 }

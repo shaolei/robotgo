@@ -17,7 +17,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/go-vgo/robotgo"
+	"github.com/shaolei/robotgo"
 	"github.com/vcaesar/tt"
 )
 

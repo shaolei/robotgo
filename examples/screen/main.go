@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/go-vgo/robotgo"
+	"github.com/shaolei/robotgo"
 	// "go-vgo/robotgo"
 )
 
@@ -70,9 +70,9 @@ func color() {
 	rgbstr := robotgo.PadHex(robotgo.U32ToHex(rgb))
 	fmt.Println("rgb...", rgbstr)
 
-	hex := robotgo.HexToRgb(uint32(rgb))
-	fmt.Println("hex...", hex)
-	hexh := robotgo.PadHex(robotgo.U8ToHex(hex))
+	hr, hg, hb := robotgo.HexToRgb(uint32(rgb))
+	fmt.Println("hex...", hr, hg, hb)
+	hexh := robotgo.PadHex(robotgo.U32ToHex(uint32(hr)<<16 | uint32(hg)<<8 | uint32(hb)))
 	fmt.Println("HexToRgb...", hexh)
 
 	// gets the pixel color at 10, 20.

@@ -95,4 +95,17 @@ examples/bitmap/imgToBitmap/test_2.jpeg
 examples/bitmap/imgToBitmap/test.png
 examples/bitmap/imgToBitmap/test_7.jpeg
 robot_img.png
+robot_img.jpeg
 examples/bitmap/bitmapTobytes/out.jpg
+
+# IDE / tool directories
+.codebuddy/
+.yggdrasil/
+
+# Example output images
+examples/screen/test.png
+examples/screen/save.png
+examples/screen/save_*.png
+examples/screen/save_*.jpeg
+examples/screen/test_*.png
+examples/screen/test_*.jpeg
